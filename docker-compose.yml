@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Tier 4: Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: fdm-db
+    environment:
+      POSTGRES_USER: fdm_user
+      POSTGRES_PASSWORD: fdm_password
+      POSTGRES_DB: fdm_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - fdm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fdm_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Tier 3: API Métier (Annonces)
+  api-business:
+    build:
+      context: ./api-business
+      dockerfile: Dockerfile
+    container_name: fdm-api-business
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://fdm_user:fdm_password@postgres:5432/fdm_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fdm-network
+    volumes:
+      - ./api-business:/app
+      - /app/node_modules
+
+  # Tier 2: API Gateway / Authentication
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: fdm-api-gateway
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://fdm_user:fdm_password@postgres:5432/fdm_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      API_BUSINESS_URL: http://api-business:3002
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api-business:
+        condition: service_started
+    networks:
+      - fdm-network
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+
+  # Tier 1: Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: fdm-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      HOSTNAME: "0.0.0.0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - fdm-network
+
+  # Nginx pour servir le frontend en production
+  nginx:
+    image: nginx:alpine
+    container_name: fdm-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - api-gateway
+    networks:
+      - fdm-network
+
+networks:
+  fdm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
