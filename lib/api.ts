@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-// Use local API routes
-const API_URL = '';
+// Use API Gateway (Tier 2) - falls back to local routes for SSR
+const API_URL = typeof window !== 'undefined' 
+  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://api-gateway:3001');
 
 const api = axios.create({
   baseURL: API_URL,

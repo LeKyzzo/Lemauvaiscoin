@@ -165,12 +165,111 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 });
 
 // Proxy vers l'API Métier pour les annonces
-app.use('/api/ads', authenticateToken, async (req, res) => {
+
+// Routes publiques (GET sans authentification)
+app.get('/api/ads', async (req, res) => {
   try {
     const response = await axios({
-      method: req.method,
-      url: `${API_BUSINESS_URL}/api/ads${req.url === '/api/ads' ? '' : req.url.replace('/api/ads', '')}`,
+      method: 'GET',
+      url: `${API_BUSINESS_URL}/api/ads`,
+      params: req.query,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    res.json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
+app.get('/api/ads/:id', async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: `${API_BUSINESS_URL}/api/ads/${req.params.id}`,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    res.json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
+// Routes protégées (nécessitent authentification)
+app.post('/api/ads', authenticateToken, async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'POST',
+      url: `${API_BUSINESS_URL}/api/ads`,
       data: req.body,
+      headers: {
+        'Authorization': req.headers['authorization'],
+        'Content-Type': 'application/json',
+      },
+    });
+    res.status(201).json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
+app.put('/api/ads/:id', authenticateToken, async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'PUT',
+      url: `${API_BUSINESS_URL}/api/ads/${req.params.id}`,
+      data: req.body,
+      headers: {
+        'Authorization': req.headers['authorization'],
+        'Content-Type': 'application/json',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
+app.delete('/api/ads/:id', authenticateToken, async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'DELETE',
+      url: `${API_BUSINESS_URL}/api/ads/${req.params.id}`,
+      headers: {
+        'Authorization': req.headers['authorization'],
+        'Content-Type': 'application/json',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
+app.get('/api/ads/user/:userId', authenticateToken, async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: `${API_BUSINESS_URL}/api/ads/user/${req.params.userId}`,
       headers: {
         'Authorization': req.headers['authorization'],
         'Content-Type': 'application/json',
