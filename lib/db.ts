@@ -1,10 +1,15 @@
 import { Pool } from 'pg';
 
+const connectionString = process.env.DATABASE_URL;
+
+// Warn but don't throw during build
+if (!connectionString) {
+  console.warn('⚠️  DATABASE_URL not set - using local fallback');
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_uD0xXYSdbtM9@ep-winter-lab-a4lwdik7-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require',
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  connectionString: connectionString || 'postgresql://postgres:postgres@db:5432/fdm',
+  ssl: connectionString?.includes('neon.tech') ? { rejectUnauthorized: false } : false,
 });
 
 export default pool;

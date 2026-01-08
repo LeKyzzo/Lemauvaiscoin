@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'lemauvaisCoin-super-secret-jwt-key-2026';
+import { verifyToken, sanitizeString } from '@/lib/auth';
 
 // GET single ad
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    
+    // Validate ID is numeric
+    const adId = parseInt(id);
+    if (isNaN(adId) || adId < 1) {
+      return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
+    }
+
     const result = await pool.query(
-      'SELECT a.*, u.first_name, u.last_name, u.phone, u.email FROM ads a JOIN users u ON a.user_id = u.id WHERE a.id = $1',
-      [id]
+      'SELECT a.*, u.first_name, u.last_name, u.phone FROM ads a JOIN users u ON a.user_id = u.id WHERE a.id = $1',
+      [adId]
     );
 
     if (result.rows.length === 0) {
@@ -34,7 +39,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         firstName: ad.first_name,
         lastName: ad.last_name,
         phone: ad.phone,
-        email: ad.email,
+        // Note: email removed for privacy
       },
     });
   } catch (error) {
@@ -47,6 +52,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const adId = parseInt(id);
+    if (isNaN(adId) || adId < 1) {
+      return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
+    }
+
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
 
@@ -54,10 +64,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Token manquant' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    let decoded;
+    try {
+      decoded = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
 
     // Check ownership
-    const check = await pool.query('SELECT user_id FROM ads WHERE id = $1', [id]);
+    const check = await pool.query('SELECT user_id FROM ads WHERE id = $1', [adId]);
     if (check.rows.length === 0) {
       return NextResponse.json({ error: 'Annonce non trouvée' }, { status: 404 });
     }
@@ -66,6 +81,44 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { title, description, price, category, location, imageUrl, status } = await request.json();
+
+    // Validate price if provided
+    let cleanPrice = undefined;
+    if (price !== undefined) {
+      const numPrice = parseFloat(price);
+      if (isNaN(numPrice) || numPrice < 0 || numPrice > 999999999) {
+        return NextResponse.json({ error: 'Prix invalide' }, { status: 400 });
+      }
+      cleanPrice = numPrice;
+    }
+
+    // Validate status if provided
+    const validStatuses = ['active', 'sold', 'deleted'];
+    if (status && !validStatuses.includes(status)) {
+      return NextResponse.json({ error: 'Statut invalide' }, { status: 400 });
+    }
+
+    // Sanitize inputs
+    const cleanTitle = title ? sanitizeString(title, 200) : undefined;
+    const cleanDescription = description !== undefined ? (description ? sanitizeString(description, 5000) : null) : undefined;
+    const cleanCategory = category !== undefined ? (category ? sanitizeString(category, 50) : null) : undefined;
+    const cleanLocation = location !== undefined ? (location ? sanitizeString(location, 200) : null) : undefined;
+    
+    let cleanImageUrl = undefined;
+    if (imageUrl !== undefined) {
+      if (imageUrl) {
+        try {
+          const url = new URL(imageUrl);
+          if (url.protocol === 'https:' || url.protocol === 'http:') {
+            cleanImageUrl = imageUrl.slice(0, 500);
+          }
+        } catch {
+          cleanImageUrl = null;
+        }
+      } else {
+        cleanImageUrl = null;
+      }
+    }
 
     const result = await pool.query(
       `UPDATE ads SET 
@@ -78,7 +131,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         status = COALESCE($7, status),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = $8 RETURNING *`,
-      [title, description, price, category, location, imageUrl, status, id]
+      [cleanTitle, cleanDescription, cleanPrice, cleanCategory, cleanLocation, cleanImageUrl, status, adId]
     );
 
     const ad = result.rows[0];
@@ -105,6 +158,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const adId = parseInt(id);
+    if (isNaN(adId) || adId < 1) {
+      return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
+    }
+
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
 
@@ -112,10 +170,15 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: 'Token manquant' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    let decoded;
+    try {
+      decoded = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
 
     // Check ownership
-    const check = await pool.query('SELECT user_id FROM ads WHERE id = $1', [id]);
+    const check = await pool.query('SELECT user_id FROM ads WHERE id = $1', [adId]);
     if (check.rows.length === 0) {
       return NextResponse.json({ error: 'Annonce non trouvée' }, { status: 404 });
     }
@@ -123,7 +186,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
-    await pool.query('DELETE FROM ads WHERE id = $1', [id]);
+    await pool.query('DELETE FROM ads WHERE id = $1', [adId]);
     return NextResponse.json({ message: 'Annonce supprimée' });
   } catch (error) {
     console.error('Delete ad error:', error);

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
-import { Search, Plus, User, Menu, X, Sun, Moon, LogOut, ChevronDown } from 'lucide-react';
+import { Search, Plus, User, Menu, X, Sun, Moon, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -30,30 +30,24 @@ export function Navbar() {
   };
 
   return (
-    <header 
-      className="sticky top-0 z-50"
-      style={{ 
-        background: 'var(--bg)', 
-        borderBottom: '1px solid var(--border)' 
-      }}
-    >
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <header style={{ background: 'var(--bg-alt)', borderBottom: '1px solid var(--border)' }}>
+      <div className="max-w-5xl mx-auto px-4">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <div 
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold"
+              className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm"
               style={{ background: 'var(--orange)' }}
             >
               M
             </div>
-            <span className="font-bold text-lg hidden sm:block" style={{ color: 'var(--text)' }}>
+            <span className="font-semibold text-sm hidden sm:block" style={{ color: 'var(--text)' }}>
               lemauvais<span style={{ color: 'var(--orange)' }}>coin</span>
             </span>
           </Link>
 
           {/* Search - Desktop */}
-          <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-md mx-6">
+          <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-sm mx-4">
             <div className="relative">
               <Search 
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" 
@@ -73,10 +67,10 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded transition-colors"
               style={{ color: 'var(--text-secondary)' }}
             >
-              {mounted && (theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)}
+              {mounted && (theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
             </button>
 
             {isAuthenticated ? (
@@ -84,57 +78,47 @@ export function Navbar() {
                 <div className="relative hidden md:block">
                   <button 
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors"
-                    style={{ 
-                      background: userMenuOpen ? 'var(--bg-tertiary)' : 'transparent',
-                      color: 'var(--text)'
-                    }}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded transition-colors"
+                    style={{ color: 'var(--text)' }}
                   >
                     <div 
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-sm font-medium"
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
                       style={{ background: 'var(--orange)' }}
                     >
                       {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
                     </div>
-                    <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
                   </button>
                   
                   {userMenuOpen && (
                     <>
+                      <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
                       <div 
-                        className="fixed inset-0 z-10" 
-                        onClick={() => setUserMenuOpen(false)}
-                      />
-                      <div 
-                        className="absolute right-0 mt-1 w-48 py-1 rounded-lg shadow-lg z-20"
-                        style={{ 
-                          background: 'var(--bg)',
-                          border: '1px solid var(--border)'
-                        }}
+                        className="absolute right-0 mt-1 w-44 py-1 rounded shadow-lg z-20"
+                        style={{ background: 'var(--bg-alt)', border: '1px solid var(--border)' }}
                       >
-                        <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
-                          <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                        <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                          <p className="text-xs font-medium" style={{ color: 'var(--text)' }}>
                             {user?.firstName || 'Mon compte'}
                           </p>
-                          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
                             {user?.email}
                           </p>
                         </div>
                         <Link 
                           href="/profile" 
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                          className="flex items-center gap-2 px-3 py-2 text-xs"
                           style={{ color: 'var(--text)' }}
                         >
-                          <User className="w-4 h-4" />
+                          <User className="w-3 h-3" />
                           Mon profil
                         </Link>
                         <button 
                           onClick={handleLogout}
-                          className="flex items-center gap-2 px-3 py-2 text-sm w-full hover:bg-gray-50 dark:hover:bg-gray-800"
-                          style={{ color: 'var(--red)' }}
+                          className="flex items-center gap-2 px-3 py-2 text-xs w-full"
+                          style={{ color: '#dc2626' }}
                         >
-                          <LogOut className="w-4 h-4" />
+                          <LogOut className="w-3 h-3" />
                           Déconnexion
                         </button>
                       </div>
@@ -142,18 +126,30 @@ export function Navbar() {
                   )}
                 </div>
                 
-                <Link href="/ads/new" className="btn-orange">
-                  <Plus className="w-4 h-4" />
+                <Link 
+                  href="/ads/new" 
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium text-white"
+                  style={{ background: 'var(--orange)' }}
+                >
+                  <Plus className="w-3 h-3" />
                   <span className="hidden sm:inline">Déposer</span>
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/login" className="btn-ghost hidden md:flex">
+                <Link 
+                  href="/login" 
+                  className="hidden md:block text-xs px-3 py-1.5"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   Connexion
                 </Link>
-                <Link href="/ads/new" className="btn-orange">
-                  <Plus className="w-4 h-4" />
+                <Link 
+                  href="/ads/new" 
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium text-white"
+                  style={{ background: 'var(--orange)' }}
+                >
+                  <Plus className="w-3 h-3" />
                   <span className="hidden sm:inline">Déposer</span>
                 </Link>
               </>
@@ -161,10 +157,10 @@ export function Navbar() {
             
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg"
+              className="md:hidden p-2 rounded"
               style={{ color: 'var(--text)' }}
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
           </div>
         </div>
@@ -189,25 +185,22 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div 
-          className="md:hidden border-t"
-          style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
-        >
+        <div style={{ background: 'var(--bg-alt)', borderTop: '1px solid var(--border)' }}>
           <div className="px-4 py-3 space-y-1">
             {isAuthenticated ? (
               <>
-                <div className="flex items-center gap-3 py-3 mb-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                <div className="flex items-center gap-3 py-2 mb-2" style={{ borderBottom: '1px solid var(--border)' }}>
                   <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
                     style={{ background: 'var(--orange)' }}
                   >
                     {user?.firstName?.[0] || 'U'}
                   </div>
                   <div>
-                    <p className="font-medium" style={{ color: 'var(--text)' }}>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>
                       {user?.firstName || 'Utilisateur'}
                     </p>
-                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       {user?.email}
                     </p>
                   </div>
@@ -215,18 +208,18 @@ export function Navbar() {
                 <Link 
                   href="/profile" 
                   onClick={() => setMobileMenuOpen(false)} 
-                  className="flex items-center gap-3 py-2.5 px-2 rounded-lg"
+                  className="flex items-center gap-2 py-2 text-sm"
                   style={{ color: 'var(--text)' }}
                 >
-                  <User className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
+                  <User className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
                   Mon profil
                 </Link>
                 <button 
                   onClick={handleLogout} 
-                  className="flex items-center gap-3 py-2.5 px-2 rounded-lg w-full"
-                  style={{ color: 'var(--red)' }}
+                  className="flex items-center gap-2 py-2 text-sm w-full"
+                  style={{ color: '#dc2626' }}
                 >
-                  <LogOut className="w-5 h-5" />
+                  <LogOut className="w-4 h-4" />
                   Déconnexion
                 </button>
               </>
@@ -235,7 +228,7 @@ export function Navbar() {
                 <Link 
                   href="/login" 
                   onClick={() => setMobileMenuOpen(false)} 
-                  className="block py-2.5 px-2 rounded-lg font-medium"
+                  className="block py-2 text-sm"
                   style={{ color: 'var(--text)' }}
                 >
                   Connexion
@@ -243,7 +236,7 @@ export function Navbar() {
                 <Link 
                   href="/register" 
                   onClick={() => setMobileMenuOpen(false)} 
-                  className="block py-2.5 px-2 rounded-lg font-medium"
+                  className="block py-2 text-sm"
                   style={{ color: 'var(--orange)' }}
                 >
                   Créer un compte

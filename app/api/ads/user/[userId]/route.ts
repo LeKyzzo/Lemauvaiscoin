@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'lemauvaisCoin-super-secret-jwt-key-2026';
+import { verifyToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   try {
     const { userId } = await params;
+    
+    // Validate userId is numeric
+    const userIdNum = parseInt(userId);
+    if (isNaN(userIdNum) || userIdNum < 1) {
+      return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
+    }
+
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
 
@@ -14,15 +19,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Token manquant' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    let decoded;
+    try {
+      decoded = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
 
-    if (parseInt(userId) !== decoded.userId) {
+    // Only allow users to see their own ads
+    if (userIdNum !== decoded.userId) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
     const result = await pool.query(
       'SELECT * FROM ads WHERE user_id = $1 ORDER BY created_at DESC',
-      [userId]
+      [userIdNum]
     );
 
     return NextResponse.json({

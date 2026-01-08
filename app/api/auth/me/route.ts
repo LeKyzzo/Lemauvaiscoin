@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'lemauvaisCoin-super-secret-jwt-key-2026';
+import { verifyToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +11,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Token manquant' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    let decoded;
+    try {
+      decoded = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+    }
 
     const result = await pool.query(
       'SELECT id, email, first_name, last_name, phone, created_at FROM users WHERE id = $1',
@@ -35,6 +38,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Me error:', error);
-    return NextResponse.json({ error: 'Token invalide' }, { status: 403 });
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
