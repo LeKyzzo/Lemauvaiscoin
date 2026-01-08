@@ -78,10 +78,15 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
       HOSTNAME: "0.0.0.0"
+      DATABASE_URL: postgresql://fdm_user:fdm_password@postgres:5432/fdm_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
     ports:
       - "3000:3000"
     depends_on:
-      - api-gateway
+      postgres:
+        condition: service_healthy
+      api-gateway:
+        condition: service_started
     networks:
       - fdm-network
 
