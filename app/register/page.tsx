@@ -38,7 +38,8 @@ export default function RegisterPage() {
       );
       router.push('/');
     } catch (err: any) {
-      setError('Erreur lors de la création du compte');
+      const message = err?.response?.data?.error || 'Erreur lors de la création du compte';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -142,12 +143,14 @@ export default function RegisterPage() {
                   name="password"
                   type="password"
                   required
+                  minLength={8}
                   value={formData.password}
                   onChange={handleChange}
                   className="input-search pl-12"
                   placeholder="••••••••"
                 />
               </div>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Minimum 8 caractères</p>
             </div>
 
             <button

@@ -275,7 +275,10 @@ export default function MentionsLegalesPage() {
           </motion.section>
 
           {/* Final note */}
-          <div 
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.1, type: "spring" }}
             className="rounded-lg p-6 text-center"
             style={{ background: 'var(--bg-muted)' }}
           >
@@ -285,7 +288,7 @@ export default function MentionsLegalesPage() {
             <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
               — Jean-Michel Introuvable, PDG de Le Mauvais Coin
             </p>
-          </div>
+          </motion.div>
 
         </div>
       </main>
