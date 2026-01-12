@@ -1,12 +1,11 @@
 import axios from 'axios';
 
-// Use API Gateway (Tier 2) - falls back to local routes for SSR
-const API_URL = typeof window !== 'undefined' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://api-gateway:3001');
+// Use API Gateway in Docker, local Next.js API routes in dev
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 10000, // 10 second timeout
   headers: {
     'Content-Type': 'application/json',
   },

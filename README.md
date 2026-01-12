@@ -1,6 +1,6 @@
-# Lemauvaiscoin
+# le mauvais coin
 
-Site de petites annonces - Clone de Leboncoin
+Des prestations douteuses, mais bien notées 🔥
 
 ## Prérequis
 

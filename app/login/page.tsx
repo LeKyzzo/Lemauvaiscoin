@@ -47,7 +47,10 @@ export default function LoginPage() {
             Connexion
           </h1>
           <p className="text-center mb-8" style={{ color: 'var(--text-secondary)' }}>
-            Connectez-vous à votre compte lemauvais coin
+            Connectez-vous au mauvais coin
+          </p>
+          <p className="text-center text-xs mb-6" style={{ color: 'var(--text-muted)' }}>
+            Des prestations douteuses, mais bien notées
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

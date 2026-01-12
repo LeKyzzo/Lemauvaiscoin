@@ -67,7 +67,7 @@ export default function ProfilePage() {
                   {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : 'Utilisateur'}
                 </h1>
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  Membre lemauvais coin
+                  Membre du mauvais coin
                 </p>
               </div>
 
@@ -125,7 +125,7 @@ export default function ProfilePage() {
                   Vous n'avez pas encore d'annonces
                 </p>
                 <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-                  Déposez votre première prestation douteuse !
+                  Déposez votre première prestation douteuse, mais bien notée !
                 </p>
                 <Link href="/ads/new" className="btn-orange inline-flex items-center gap-2">
                   <Plus className="w-4 h-4" />

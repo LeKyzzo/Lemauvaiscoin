@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lemauvaiscoin",
-  description: "Application de prestations de vol en bande organisés - c'est Marseille bébé!",
+  title: "le mauvais coin",
+  description: "Des prestations douteuses, mais bien notées - © 2026",
 };
 
 export default function RootLayout({

@@ -62,7 +62,10 @@ export default function RegisterPage() {
             Créer un compte
           </h1>
           <p className="text-center mb-8" style={{ color: 'var(--text-secondary)' }}>
-            Rejoignez la communauté lemauvais coin
+            Rejoignez le mauvais coin
+          </p>
+          <p className="text-center text-xs mb-6" style={{ color: 'var(--text-muted)' }}>
+            Des prestations douteuses, mais bien notées
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

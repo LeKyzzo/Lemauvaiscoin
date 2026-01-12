@@ -5,9 +5,10 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { Search, Plus, User, Menu, X, Sun, Moon, LogOut } from 'lucide-react';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function Navbar() {
+  const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme, mounted } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +43,7 @@ export function Navbar() {
               M
             </div>
             <span className="font-semibold text-sm hidden sm:block" style={{ color: 'var(--text)' }}>
-              lemauvais<span style={{ color: 'var(--orange)' }}>coin</span>
+              le mauvais <span style={{ color: 'var(--orange)' }}>coin</span>
             </span>
           </Link>
 
@@ -57,11 +58,29 @@ export function Navbar() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher..."
+                placeholder="Volez ce que vous cherchez..."
                 className="input-search"
               />
             </div>
           </form>
+
+          {/* Nav Links - Desktop */}
+          <nav className="hidden md:flex items-center gap-4 mx-4">
+            <Link 
+              href="/" 
+              className="text-xs font-medium transition-colors"
+              style={{ color: pathname === '/' ? 'var(--orange)' : 'var(--text-secondary)' }}
+            >
+              Accueil
+            </Link>
+            <Link 
+              href="/mentions-legales" 
+              className="text-xs font-medium transition-colors"
+              style={{ color: pathname === '/mentions-legales' ? 'var(--orange)' : 'var(--text-secondary)' }}
+            >
+              Mentions légales
+            </Link>
+          </nav>
 
           {/* Actions */}
           <div className="flex items-center gap-2">
@@ -108,7 +127,7 @@ export function Navbar() {
                           href="/profile" 
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 text-xs"
-                          style={{ color: 'var(--text)' }}
+                          style={{ color: pathname === '/profile' ? 'var(--orange)' : 'var(--text)' }}
                         >
                           <User className="w-3 h-3" />
                           Mon profil
@@ -140,7 +159,7 @@ export function Navbar() {
                 <Link 
                   href="/login" 
                   className="hidden md:block text-xs px-3 py-1.5"
-                  style={{ color: 'var(--text-secondary)' }}
+                  style={{ color: pathname === '/login' ? 'var(--orange)' : 'var(--text-secondary)' }}
                 >
                   Connexion
                 </Link>
@@ -187,6 +206,24 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div style={{ background: 'var(--bg-alt)', borderTop: '1px solid var(--border)' }}>
           <div className="px-4 py-3 space-y-1">
+            {/* Mobile Nav Links */}
+            <Link 
+              href="/" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium"
+              style={{ color: pathname === '/' ? 'var(--orange)' : 'var(--text)' }}
+            >
+              Accueil
+            </Link>
+            <Link 
+              href="/mentions-legales" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium"
+              style={{ color: pathname === '/mentions-legales' ? 'var(--orange)' : 'var(--text)' }}
+            >
+              Mentions légales
+            </Link>
+            <div className="my-2" style={{ borderBottom: '1px solid var(--border)' }} />
             {isAuthenticated ? (
               <>
                 <div className="flex items-center gap-3 py-2 mb-2" style={{ borderBottom: '1px solid var(--border)' }}>
@@ -209,9 +246,9 @@ export function Navbar() {
                   href="/profile" 
                   onClick={() => setMobileMenuOpen(false)} 
                   className="flex items-center gap-2 py-2 text-sm"
-                  style={{ color: 'var(--text)' }}
+                  style={{ color: pathname === '/profile' ? 'var(--orange)' : 'var(--text)' }}
                 >
-                  <User className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                  <User className="w-4 h-4" style={{ color: pathname === '/profile' ? 'var(--orange)' : 'var(--text-secondary)' }} />
                   Mon profil
                 </Link>
                 <button 
@@ -229,7 +266,7 @@ export function Navbar() {
                   href="/login" 
                   onClick={() => setMobileMenuOpen(false)} 
                   className="block py-2 text-sm"
-                  style={{ color: 'var(--text)' }}
+                  style={{ color: pathname === '/login' ? 'var(--orange)' : 'var(--text)' }}
                 >
                   Connexion
                 </Link>
@@ -237,7 +274,7 @@ export function Navbar() {
                   href="/register" 
                   onClick={() => setMobileMenuOpen(false)} 
                   className="block py-2 text-sm"
-                  style={{ color: 'var(--orange)' }}
+                  style={{ color: pathname === '/register' ? 'var(--orange)' : 'var(--text-secondary)' }}
                 >
                   Créer un compte
                 </Link>
