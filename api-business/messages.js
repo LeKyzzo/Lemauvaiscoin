@@ -30,14 +30,29 @@ function createMessagesRoutes(authenticateToken) {
         return res.status(404).json({ error: 'Destinataire non trouvé' });
       }
 
+      // Obtenir ou créer une conversation entre les deux utilisateurs
+      const conversationResult = await pool.query(
+        'SELECT get_or_create_conversation($1, $2) as conversation_id',
+        [req.user.userId, receiverId]
+      );
+      const conversationId = conversationResult.rows[0].conversation_id;
+
+      // Mettre à jour updated_at de la conversation
+      await pool.query(
+        'UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+        [conversationId]
+      );
+
+      // Insérer le message avec la conversation_id
       const result = await pool.query(
-        'INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3) RETURNING *',
-        [req.user.userId, receiverId, content.trim()]
+        'INSERT INTO messages (conversation_id, sender_id, receiver_id, content) VALUES ($1, $2, $3, $4) RETURNING *',
+        [conversationId, req.user.userId, receiverId, content.trim()]
       );
 
       const message = result.rows[0];
       res.status(201).json({
         id: message.id,
+        conversationId: message.conversation_id,
         senderId: message.sender_id,
         receiverId: message.receiver_id,
         content: message.content,
@@ -55,42 +70,43 @@ function createMessagesRoutes(authenticateToken) {
     try {
       const userId = req.user.userId;
 
-      // Récupérer toutes les conversations (en tant que sender ou receiver)
+      // Récupérer toutes les conversations où l'utilisateur est participant
       const result = await pool.query(
-        `SELECT DISTINCT
+        `SELECT 
+          c.id as conversation_id,
           CASE 
-            WHEN m.sender_id = $1 THEN m.receiver_id
-            ELSE m.sender_id
+            WHEN c.user1_id = $1 THEN c.user2_id
+            ELSE c.user1_id
           END as other_user_id,
           u.first_name,
           u.last_name,
           u.email,
           (SELECT content FROM messages 
-           WHERE (sender_id = $1 AND receiver_id = other_user_id) 
-              OR (sender_id = other_user_id AND receiver_id = $1)
+           WHERE conversation_id = c.id
            ORDER BY created_at DESC LIMIT 1) as last_message,
           (SELECT created_at FROM messages 
-           WHERE (sender_id = $1 AND receiver_id = other_user_id) 
-              OR (sender_id = other_user_id AND receiver_id = $1)
+           WHERE conversation_id = c.id
            ORDER BY created_at DESC LIMIT 1) as last_message_date,
           (SELECT COUNT(*) FROM messages 
-           WHERE receiver_id = $1 
-             AND sender_id = other_user_id 
-             AND read_at IS NULL) as unread_count
-        FROM messages m
+           WHERE conversation_id = c.id
+             AND receiver_id = $1 
+             AND read_at IS NULL) as unread_count,
+          c.updated_at
+        FROM conversations c
         JOIN users u ON (
           CASE 
-            WHEN m.sender_id = $1 THEN u.id = m.receiver_id
-            ELSE u.id = m.sender_id
+            WHEN c.user1_id = $1 THEN u.id = c.user2_id
+            ELSE u.id = c.user1_id
           END
         )
-        WHERE m.sender_id = $1 OR m.receiver_id = $1
-        ORDER BY last_message_date DESC`,
+        WHERE c.user1_id = $1 OR c.user2_id = $1
+        ORDER BY c.updated_at DESC`,
         [userId]
       );
 
       res.json({
         conversations: result.rows.map(row => ({
+          conversationId: row.conversation_id,
           userId: row.other_user_id,
           firstName: row.first_name,
           lastName: row.last_name,
@@ -122,7 +138,14 @@ function createMessagesRoutes(authenticateToken) {
         return res.status(404).json({ error: 'Utilisateur non trouvé' });
       }
 
-      // Récupérer les messages
+      // Obtenir ou créer la conversation entre les deux utilisateurs
+      const conversationResult = await pool.query(
+        'SELECT get_or_create_conversation($1, $2) as conversation_id',
+        [currentUserId, userId]
+      );
+      const conversationId = conversationResult.rows[0].conversation_id;
+
+      // Récupérer les messages de la conversation
       const messagesResult = await pool.query(
         `SELECT m.*, 
           s.first_name as sender_first_name, 
@@ -132,19 +155,19 @@ function createMessagesRoutes(authenticateToken) {
         FROM messages m
         JOIN users s ON m.sender_id = s.id
         JOIN users r ON m.receiver_id = r.id
-        WHERE (m.sender_id = $1 AND m.receiver_id = $2)
-           OR (m.sender_id = $2 AND m.receiver_id = $1)
+        WHERE m.conversation_id = $1
         ORDER BY m.created_at ASC`,
-        [currentUserId, userId]
+        [conversationId]
       );
 
       // Marquer les messages comme lus
       await pool.query(
-        'UPDATE messages SET read_at = CURRENT_TIMESTAMP WHERE receiver_id = $1 AND sender_id = $2 AND read_at IS NULL',
-        [currentUserId, userId]
+        'UPDATE messages SET read_at = CURRENT_TIMESTAMP WHERE conversation_id = $1 AND receiver_id = $2 AND read_at IS NULL',
+        [conversationId, currentUserId]
       );
 
       res.json({
+        conversationId: conversationId,
         user: {
           id: userCheck.rows[0].id,
           firstName: userCheck.rows[0].first_name,
@@ -153,6 +176,7 @@ function createMessagesRoutes(authenticateToken) {
         },
         messages: messagesResult.rows.map(msg => ({
           id: msg.id,
+          conversationId: msg.conversation_id,
           senderId: msg.sender_id,
           receiverId: msg.receiver_id,
           content: msg.content,

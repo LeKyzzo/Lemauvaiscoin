@@ -74,20 +74,16 @@ export function Navbar() {
             >
               Accueil
             </Link>
-            <Link 
-              href="/about" 
-              className="text-xs font-medium transition-colors hover:opacity-80"
-              style={{ color: pathname === '/about' ? 'var(--orange)' : 'var(--text-secondary)' }}
-            >
-              À propos
-            </Link>
-            <Link 
-              href="/faq" 
-              className="text-xs font-medium transition-colors hover:opacity-80"
-              style={{ color: pathname === '/faq' ? 'var(--orange)' : 'var(--text-secondary)' }}
-            >
-              FAQ
-            </Link>
+            {isAuthenticated && (
+              <Link 
+                href="/messages" 
+                className="text-xs font-medium transition-colors hover:opacity-80 relative inline-flex items-center gap-1"
+                style={{ color: pathname?.startsWith('/messages') ? 'var(--orange)' : 'var(--text-secondary)' }}
+              >
+                Messages
+                <MessageBadge />
+              </Link>
+            )}
             <Link 
               href="/contact" 
               className="text-xs font-medium transition-colors hover:opacity-80"
@@ -251,22 +247,17 @@ export function Navbar() {
             >
               Accueil
             </Link>
-            <Link 
-              href="/about" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm font-medium"
-              style={{ color: pathname === '/about' ? 'var(--orange)' : 'var(--text)' }}
-            >
-              À propos
-            </Link>
-            <Link 
-              href="/faq" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm font-medium"
-              style={{ color: pathname === '/faq' ? 'var(--orange)' : 'var(--text)' }}
-            >
-              FAQ
-            </Link>
+            {isAuthenticated && (
+              <Link 
+                href="/messages" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-2 text-sm font-medium relative inline-flex items-center gap-1"
+                style={{ color: pathname?.startsWith('/messages') ? 'var(--orange)' : 'var(--text)' }}
+              >
+                Messages
+                <MessageBadge />
+              </Link>
+            )}
             <Link 
               href="/contact" 
               onClick={() => setMobileMenuOpen(false)}

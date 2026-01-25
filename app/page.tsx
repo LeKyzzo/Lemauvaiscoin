@@ -435,7 +435,8 @@ function Footer() {
   
   const footerLinks = [
     { href: '/', label: 'Accueil' },
-    { href: '/ads/new', label: 'Déposer' },
+    { href: '/about', label: 'À propos' },
+    { href: '/faq', label: 'FAQ' },
     { href: '/mentions-legales', label: 'Mentions légales' },
   ];
 
@@ -452,7 +453,7 @@ function Footer() {
           <span className="font-medium" style={{ color: 'var(--text)' }}>
             le mauvais <span style={{ color: 'var(--orange)' }}>coin</span>
           </span>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4 justify-center">
             {footerLinks.map((link) => (
               <Link 
                 key={link.href}
