@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // Use API Gateway in Docker, local Next.js API routes in dev
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+// In browser, use relative URLs to hit Next.js API routes which proxy to API Gateway
+const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
 
 const api = axios.create({
   baseURL: API_URL,
@@ -133,6 +134,54 @@ export const adsAPI = {
 
   getByUser: async (userId: number) => {
     const response = await api.get(`/api/ads/user/${userId}`);
+    return response.data;
+  },
+};
+
+// Messages API
+export interface Message {
+  id: number;
+  senderId: number;
+  receiverId: number;
+  content: string;
+  readAt?: string;
+  createdAt: string;
+  isFromCurrentUser?: boolean;
+}
+
+export interface Conversation {
+  userId: number;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  lastMessage?: string;
+  lastMessageDate?: string;
+  unreadCount: number;
+}
+
+export interface ConversationDetail {
+  user: User;
+  messages: Message[];
+}
+
+export const messagesAPI = {
+  send: async (receiverId: number, content: string): Promise<Message> => {
+    const response = await api.post('/api/messages', { receiverId, content });
+    return response.data;
+  },
+
+  getConversations: async (): Promise<{ conversations: Conversation[] }> => {
+    const response = await api.get('/api/messages/conversations');
+    return response.data;
+  },
+
+  getConversation: async (userId: number): Promise<ConversationDetail> => {
+    const response = await api.get(`/api/messages/${userId}`);
+    return response.data;
+  },
+
+  getUnreadCount: async (): Promise<{ count: number }> => {
+    const response = await api.get('/api/messages/unread/count');
     return response.data;
   },
 };

@@ -23,15 +23,25 @@ function HomeContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   const searchQuery = searchParams.get('search') || '';
+  const limit = 20;
 
   useEffect(() => {
     const fetchAds = async () => {
       try {
         setLoading(true);
         setError(null);
-        const params: { category?: string; search?: string } = {};
+        const params: { category?: string; search?: string; page?: number; limit?: number; minPrice?: number; maxPrice?: number } = {
+          page: currentPage,
+          limit,
+        };
         
         if (selectedCategory) {
           params.category = selectedCategory;
@@ -39,9 +49,17 @@ function HomeContent() {
         if (searchQuery) {
           params.search = searchQuery;
         }
+        if (minPrice) {
+          params.minPrice = parseFloat(minPrice);
+        }
+        if (maxPrice) {
+          params.maxPrice = parseFloat(maxPrice);
+        }
         
         const response = await adsAPI.getAll(params);
         setAds(response.ads || []);
+        setTotalPages(response.pagination?.totalPages || 1);
+        setTotal(response.pagination?.total || 0);
       } catch (err) {
         console.error('Error fetching ads:', err);
         setError('Erreur de chargement');
@@ -52,7 +70,7 @@ function HomeContent() {
     };
 
     fetchAds();
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, currentPage, minPrice, maxPrice]);
 
   return (
     <>
@@ -98,26 +116,107 @@ function HomeContent() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
-            className="flex items-center gap-2 py-3 overflow-x-auto"
+            className="py-3"
           >
-            {categories.map((cat, index) => (
-              <motion.button
-                key={cat.name}
-                onClick={() => setSelectedCategory(cat.value)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 + index * 0.05 }}
-                className="px-3 py-1.5 rounded text-sm whitespace-nowrap transition-colors"
+            <div className="flex items-center gap-2 mb-3 overflow-x-auto">
+              {categories.map((cat, index) => (
+                <motion.button
+                  key={cat.name}
+                  onClick={() => {
+                    setSelectedCategory(cat.value);
+                    setCurrentPage(1);
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 + index * 0.05 }}
+                  className="px-3 py-1.5 rounded text-sm whitespace-nowrap transition-colors"
+                  style={{
+                    background: selectedCategory === cat.value ? 'var(--orange)' : 'var(--bg-muted)',
+                    color: selectedCategory === cat.value ? 'white' : 'var(--text-secondary)'
+                  }}
+                >
+                  {cat.name}
+                </motion.button>
+              ))}
+            </div>
+            
+            {/* Advanced Filters */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="text-xs px-3 py-1.5 rounded transition-colors"
                 style={{
-                  background: selectedCategory === cat.value ? 'var(--orange)' : 'var(--bg-muted)',
-                  color: selectedCategory === cat.value ? 'white' : 'var(--text-secondary)'
+                  background: showAdvancedFilters ? 'var(--orange-light)' : 'var(--bg-muted)',
+                  color: showAdvancedFilters ? 'var(--orange)' : 'var(--text-secondary)'
                 }}
               >
-                {cat.name}
-              </motion.button>
-            ))}
+                {showAdvancedFilters ? 'Masquer' : 'Filtres avancés'}
+              </button>
+              {(minPrice || maxPrice) && (
+                <button
+                  onClick={() => {
+                    setMinPrice('');
+                    setMaxPrice('');
+                    setCurrentPage(1);
+                  }}
+                  className="text-xs px-2 py-1.5 rounded"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  Réinitialiser
+                </button>
+              )}
+            </div>
+
+            {showAdvancedFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 pt-3 border-t flex flex-wrap gap-3"
+                style={{ borderColor: 'var(--border)' }}
+              >
+                <div className="flex items-center gap-2">
+                  <label className="text-xs" style={{ color: 'var(--text-secondary)' }}>Prix min:</label>
+                  <input
+                    type="number"
+                    value={minPrice}
+                    onChange={(e) => {
+                      setMinPrice(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="0"
+                    className="w-24 px-2 py-1 text-xs rounded border"
+                    style={{
+                      background: 'var(--bg)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--text)'
+                    }}
+                  />
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>€</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs" style={{ color: 'var(--text-secondary)' }}>Prix max:</label>
+                  <input
+                    type="number"
+                    value={maxPrice}
+                    onChange={(e) => {
+                      setMaxPrice(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="∞"
+                    className="w-24 px-2 py-1 text-xs rounded border"
+                    style={{
+                      background: 'var(--bg)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--text)'
+                    }}
+                  />
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>€</span>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </div>
@@ -130,11 +229,12 @@ function HomeContent() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-medium" style={{ color: 'var(--text)' }}>
-                {searchQuery ? `Résultats : ${searchQuery}` : 'Annonces récentes'}
+                {searchQuery ? `Résultats : "${searchQuery}"` : 'Annonces récentes'}
               </h2>
               {!loading && (
                 <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                  {ads.length} annonce{ads.length !== 1 ? 's' : ''}
+                  {total} annonce{total !== 1 ? 's' : ''} trouvée{total !== 1 ? 's' : ''}
+                  {totalPages > 1 && ` • Page ${currentPage} sur ${totalPages}`}
                 </p>
               )}
             </div>
@@ -251,6 +351,67 @@ function HomeContent() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Pagination */}
+          {!loading && !error && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: currentPage === 1 ? 'var(--bg-muted)' : 'var(--bg-alt)',
+                  color: currentPage === 1 ? 'var(--text-muted)' : 'var(--text)',
+                  border: '1px solid var(--border)'
+                }}
+              >
+                Précédent
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className="w-10 h-10 rounded text-sm font-medium transition-colors"
+                      style={{
+                        background: currentPage === pageNum ? 'var(--orange)' : 'var(--bg-alt)',
+                        color: currentPage === pageNum ? 'white' : 'var(--text)',
+                        border: '1px solid var(--border)'
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: currentPage === totalPages ? 'var(--bg-muted)' : 'var(--bg-alt)',
+                  color: currentPage === totalPages ? 'var(--text-muted)' : 'var(--text)',
+                  border: '1px solid var(--border)'
+                }}
+              >
+                Suivant
+              </button>
+            </div>
+          )}
 
         </div>
       </div>

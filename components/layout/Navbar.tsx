@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
-import { Search, Plus, User, Menu, X, Sun, Moon, LogOut } from 'lucide-react';
+import { Search, Plus, User, Menu, X, Sun, Moon, LogOut, Heart, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { MessageBadge } from './MessageBadge';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -68,17 +69,31 @@ export function Navbar() {
           <nav className="hidden md:flex items-center gap-4 mx-4">
             <Link 
               href="/" 
-              className="text-xs font-medium transition-colors"
+              className="text-xs font-medium transition-colors hover:opacity-80"
               style={{ color: pathname === '/' ? 'var(--orange)' : 'var(--text-secondary)' }}
             >
               Accueil
             </Link>
             <Link 
-              href="/mentions-legales" 
-              className="text-xs font-medium transition-colors"
-              style={{ color: pathname === '/mentions-legales' ? 'var(--orange)' : 'var(--text-secondary)' }}
+              href="/about" 
+              className="text-xs font-medium transition-colors hover:opacity-80"
+              style={{ color: pathname === '/about' ? 'var(--orange)' : 'var(--text-secondary)' }}
             >
-              Mentions légales
+              À propos
+            </Link>
+            <Link 
+              href="/faq" 
+              className="text-xs font-medium transition-colors hover:opacity-80"
+              style={{ color: pathname === '/faq' ? 'var(--orange)' : 'var(--text-secondary)' }}
+            >
+              FAQ
+            </Link>
+            <Link 
+              href="/contact" 
+              className="text-xs font-medium transition-colors hover:opacity-80"
+              style={{ color: pathname === '/contact' ? 'var(--orange)' : 'var(--text-secondary)' }}
+            >
+              Contact
             </Link>
           </nav>
 
@@ -131,6 +146,27 @@ export function Navbar() {
                         >
                           <User className="w-3 h-3" />
                           Mon profil
+                        </Link>
+                        <Link 
+                          href="/messages" 
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 text-xs relative"
+                          style={{ color: pathname?.startsWith('/messages') ? 'var(--orange)' : 'var(--text)' }}
+                        >
+                          <div className="relative">
+                            <MessageCircle className="w-3 h-3" />
+                            <MessageBadge />
+                          </div>
+                          Messages
+                        </Link>
+                        <Link 
+                          href="/favorites" 
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 text-xs"
+                          style={{ color: pathname === '/favorites' ? 'var(--orange)' : 'var(--text)' }}
+                        >
+                          <Heart className="w-3 h-3" />
+                          Mes favoris
                         </Link>
                         <button 
                           onClick={handleLogout}
@@ -216,12 +252,28 @@ export function Navbar() {
               Accueil
             </Link>
             <Link 
-              href="/mentions-legales" 
+              href="/about" 
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-sm font-medium"
-              style={{ color: pathname === '/mentions-legales' ? 'var(--orange)' : 'var(--text)' }}
+              style={{ color: pathname === '/about' ? 'var(--orange)' : 'var(--text)' }}
             >
-              Mentions légales
+              À propos
+            </Link>
+            <Link 
+              href="/faq" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium"
+              style={{ color: pathname === '/faq' ? 'var(--orange)' : 'var(--text)' }}
+            >
+              FAQ
+            </Link>
+            <Link 
+              href="/contact" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium"
+              style={{ color: pathname === '/contact' ? 'var(--orange)' : 'var(--text)' }}
+            >
+              Contact
             </Link>
             <div className="my-2" style={{ borderBottom: '1px solid var(--border)' }} />
             {isAuthenticated ? (
@@ -250,6 +302,27 @@ export function Navbar() {
                 >
                   <User className="w-4 h-4" style={{ color: pathname === '/profile' ? 'var(--orange)' : 'var(--text-secondary)' }} />
                   Mon profil
+                </Link>
+                <Link 
+                  href="/messages" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="flex items-center gap-2 py-2 text-sm relative"
+                  style={{ color: pathname?.startsWith('/messages') ? 'var(--orange)' : 'var(--text)' }}
+                >
+                  <div className="relative">
+                    <MessageCircle className="w-4 h-4" style={{ color: pathname?.startsWith('/messages') ? 'var(--orange)' : 'var(--text-secondary)' }} />
+                    <MessageBadge />
+                  </div>
+                  Messages
+                </Link>
+                <Link 
+                  href="/favorites" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="flex items-center gap-2 py-2 text-sm"
+                  style={{ color: pathname === '/favorites' ? 'var(--orange)' : 'var(--text)' }}
+                >
+                  <Heart className="w-4 h-4" style={{ color: pathname === '/favorites' ? 'var(--orange)' : 'var(--text-secondary)' }} />
+                  Mes favoris
                 </Link>
                 <button 
                   onClick={handleLogout} 

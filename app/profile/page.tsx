@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { Ad, adsAPI } from '@/lib/api';
-import { Loader2, Plus, Settings, Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { Loader2, Plus, Settings, Mail, Phone, MapPin, Clock, Heart, Edit } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ProfilePage() {
@@ -87,15 +87,30 @@ export default function ProfilePage() {
 
               {/* Stats */}
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="p-4 rounded-xl text-center" style={{ background: 'var(--bg-tertiary)' }}>
-                  <div className="text-2xl font-bold" style={{ color: 'var(--orange)' }}>{userAds.length}</div>
-                  <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Annonces</div>
+                <div className="p-4 rounded-xl text-center transition-all hover:scale-105" style={{ background: 'var(--bg-muted)' }}>
+                  <div className="text-2xl font-bold mb-1" style={{ color: 'var(--orange)' }}>{userAds.length}</div>
+                  <div className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Annonces</div>
+                  <div className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>
+                    {userAds.filter(a => a.status === 'active').length} active{userAds.filter(a => a.status === 'active').length !== 1 ? 's' : ''}
+                  </div>
                 </div>
-                <div className="p-4 rounded-xl text-center" style={{ background: 'var(--bg-tertiary)' }}>
-                  <div className="text-2xl font-bold" style={{ color: 'var(--orange)' }}>0</div>
-                  <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Favoris</div>
+                <div className="p-4 rounded-xl text-center transition-all hover:scale-105" style={{ background: 'var(--bg-muted)' }}>
+                  <div className="text-2xl font-bold mb-1" style={{ color: 'var(--orange)' }}>
+                    {typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('lemauvaiscoin_favorites') || '[]').length : 0}
+                  </div>
+                  <div className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Favoris</div>
+                  <div className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>Sauvegardés</div>
                 </div>
               </div>
+              
+              {user.createdAt && (
+                <div className="mb-6 p-3 rounded-lg" style={{ background: 'var(--bg-muted)' }}>
+                  <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Membre depuis</div>
+                  <div className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
+                    {new Date(user.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })}
+                  </div>
+                </div>
+              )}
 
               <button
                 onClick={() => { logout(); router.push('/'); }}
@@ -135,11 +150,11 @@ export default function ProfilePage() {
             ) : (
               <div className="space-y-3">
                 {userAds.map((ad) => (
-                  <Link key={ad.id} href={`/ads/${ad.id}`}>
-                    <article className="card flex gap-4 p-4 hover:shadow-md transition-shadow">
-                      <div className="w-32 h-24 shrink-0 rounded-lg overflow-hidden" style={{ background: 'var(--bg-tertiary)' }}>
+                  <div key={ad.id} className="card flex gap-4 p-4 hover:shadow-md transition-all group">
+                    <Link href={`/ads/${ad.id}`} className="flex gap-4 flex-1">
+                      <div className="w-32 h-24 shrink-0 rounded-lg overflow-hidden" style={{ background: 'var(--bg-muted)' }}>
                         {ad.imageUrl ? (
-                          <img src={ad.imageUrl} alt={ad.title} className="w-full h-full object-cover" />
+                          <img src={ad.imageUrl} alt={ad.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
                         )}
@@ -158,16 +173,30 @@ export default function ProfilePage() {
                               {ad.location}
                             </span>
                           )}
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(ad.createdAt).toLocaleDateString('fr-FR')}
+                          </span>
                           <span 
                             className="tag"
-                            style={{ background: ad.status === 'active' ? '#dcfce7' : 'var(--bg-tertiary)', color: ad.status === 'active' ? '#16a34a' : 'var(--text-secondary)' }}
+                            style={{ background: ad.status === 'active' ? '#dcfce7' : 'var(--bg-muted)', color: ad.status === 'active' ? '#16a34a' : 'var(--text-secondary)' }}
                           >
                             {ad.status === 'active' ? 'En ligne' : ad.status}
                           </span>
                         </div>
                       </div>
-                    </article>
-                  </Link>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/ads/${ad.id}/edit`}
+                        className="p-2 rounded-lg hover:opacity-70 transition-all"
+                        style={{ background: 'var(--bg-muted)', color: 'var(--text-secondary)' }}
+                        title="Modifier"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { AdCreate, adsAPI } from '@/lib/api';
 import { ArrowLeft, Loader2, ImagePlus, Info } from 'lucide-react';
+import { useToast } from '@/components/providers/ToastProvider';
 import Link from 'next/link';
 
 const categories = ['Services', 'Objets', 'Véhicules', 'Immobilier', 'Autre'];
@@ -12,6 +13,7 @@ const categories = ['Services', 'Objets', 'Véhicules', 'Immobilier', 'Autre'];
 export default function NewAdPage() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<AdCreate>({
@@ -38,9 +40,12 @@ export default function NewAdPage() {
     setLoading(true);
     try {
       await adsAPI.create(formData);
-      router.push('/');
-    } catch (error) {
-      alert('Erreur lors de la création');
+      toast.success('Annonce publiée avec succès !');
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Erreur lors de la création de l\'annonce');
     } finally {
       setLoading(false);
     }

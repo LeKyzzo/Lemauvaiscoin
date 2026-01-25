@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "le mauvais coin",
-  description: "Des prestations douteuses, mais bien notées - © 2026",
+  title: "LeMauvaisCoin - Des prestations douteuses, mais bien notées",
+  description: "LeMauvaisCoin - Des prestations douteuses, mais bien notées. Marketplace de seconde main moderne et sécurisée.",
+  keywords: "annonces, seconde main, marketplace, vente, achat",
+  authors: [{ name: "LeMauvaisCoin" }],
+  openGraph: {
+    title: "LeMauvaisCoin",
+    description: "Des prestations douteuses, mais bien notées",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -31,7 +39,9 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

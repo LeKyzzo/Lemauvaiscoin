@@ -77,6 +77,8 @@ services:
     container_name: fdm-frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
+      API_GATEWAY_URL: http://api-gateway:3001
+      DOCKER_ENV: "true"
       HOSTNAME: "0.0.0.0"
       DATABASE_URL: postgresql://fdm_user:fdm_password@postgres:5432/fdm_db
       JWT_SECRET: your-super-secret-jwt-key-change-in-production

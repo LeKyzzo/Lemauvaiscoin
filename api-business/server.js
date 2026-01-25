@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
+const messagesRouter = require('./messages');
 require('dotenv').config();
 
 const app = express();
@@ -34,6 +35,9 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Messages routes
+app.use('/', messagesRouter(authenticateToken));
 
 // Routes pour les annonces
 

@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Ad, adsAPI } from '@/lib/api';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { ArrowLeft, Loader2, MapPin, Clock, Mail, Phone, Trash2, AlertCircle, Heart, Share2, Flag } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Clock, Mail, Phone, Trash2, AlertCircle, Heart, Share2, Flag, MessageCircle } from 'lucide-react';
+import { isFavorite, toggleFavorite } from '@/lib/favorites';
+import { useToast } from '@/components/providers/ToastProvider';
 import Link from 'next/link';
 
 export default function AdDetailPage() {
@@ -13,9 +15,14 @@ export default function AdDetailPage() {
   const { user, isAuthenticated } = useAuth();
   const [ad, setAd] = useState<Ad | null>(null);
   const [loading, setLoading] = useState(true);
+  const [favorite, setFavorite] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
-    if (params.id) loadAd();
+    if (params.id) {
+      loadAd();
+      setFavorite(isFavorite(Number(params.id)));
+    }
   }, [params.id]);
 
   const loadAd = async () => {
@@ -116,10 +123,36 @@ export default function AdDetailPage() {
                   <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>{ad.title}</h1>
                 </div>
                 <div className="flex gap-2">
-                  <button className="p-2 rounded-lg hover:opacity-70" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}>
-                    <Heart className="w-5 h-5" />
+                  <button 
+                    onClick={() => {
+                      const newFavorite = toggleFavorite(ad.id);
+                      setFavorite(newFavorite);
+                      toast.success(newFavorite ? 'Ajouté aux favoris' : 'Retiré des favoris');
+                    }}
+                    className="p-2 rounded-lg hover:opacity-70 transition-all"
+                    style={{ 
+                      background: favorite ? 'var(--orange-light)' : 'var(--bg-tertiary)', 
+                      color: favorite ? 'var(--orange)' : 'var(--text-secondary)' 
+                    }}
+                  >
+                    <Heart className={`w-5 h-5 ${favorite ? 'fill-current' : ''}`} />
                   </button>
-                  <button className="p-2 rounded-lg hover:opacity-70" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}>
+                  <button 
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: ad.title,
+                          text: ad.description,
+                          url: window.location.href,
+                        });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast.success('Lien copié dans le presse-papier');
+                      }
+                    }}
+                    className="p-2 rounded-lg hover:opacity-70 transition-all"
+                    style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                  >
                     <Share2 className="w-5 h-5" />
                   </button>
                 </div>
@@ -183,10 +216,19 @@ export default function AdDetailPage() {
               </div>
 
               <div className="space-y-3 mb-6">
+                {isAuthenticated && ad.userId !== user?.id && (
+                  <Link
+                    href={`/messages/${ad.userId}`}
+                    className="btn-orange w-full flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Envoyer un message
+                  </Link>
+                )}
                 {ad.user?.email && (
                   <a
                     href={`mailto:${ad.user.email}?subject=À propos de : ${ad.title}`}
-                    className="btn-orange w-full flex items-center justify-center gap-2"
+                    className="btn-outline w-full flex items-center justify-center gap-2"
                   >
                     <Mail className="w-4 h-4" />
                     Envoyer un email

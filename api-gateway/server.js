@@ -285,6 +285,88 @@ app.get('/api/ads/user/:userId', authenticateToken, async (req, res) => {
   }
 });
 
+// Proxy vers l'API Métier pour les messages
+app.post('/api/messages', authenticateToken, async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'POST',
+      url: `${API_BUSINESS_URL}/api/messages`,
+      data: req.body,
+      headers: {
+        'Authorization': req.headers['authorization'],
+        'Content-Type': 'application/json',
+      },
+    });
+    res.status(201).json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
+app.get('/api/messages/conversations', authenticateToken, async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: `${API_BUSINESS_URL}/api/messages/conversations`,
+      headers: {
+        'Authorization': req.headers['authorization'],
+        'Content-Type': 'application/json',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
+app.get('/api/messages/:userId', authenticateToken, async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: `${API_BUSINESS_URL}/api/messages/${req.params.userId}`,
+      headers: {
+        'Authorization': req.headers['authorization'],
+        'Content-Type': 'application/json',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
+app.get('/api/messages/unread/count', authenticateToken, async (req, res) => {
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: `${API_BUSINESS_URL}/api/messages/unread/count`,
+      headers: {
+        'Authorization': req.headers['authorization'],
+        'Content-Type': 'application/json',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la communication avec l\'API métier' });
+    }
+  }
+});
+
 // Route de santé
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'api-gateway' });
